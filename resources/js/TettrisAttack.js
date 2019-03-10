@@ -9,13 +9,6 @@ const STYLESHEET_CROP = {
     VERTICAL: "VERTICAL"
 };
 
-const ANIMATION_STYLE = {
-    HORIZONTAL: "HORIZONTAL",
-    VERTICAL: "VERTICAL"
-};
-
-let canvas = document.createElement('canvas');
-
 function load() {
     let frames = spriteLoader({
         sprite: 'resources/images/characters/SNES - Tetris Attack - Yoshi.png',
@@ -34,7 +27,7 @@ function createanimation(animFrames) {
     for (let i = 0; i < animFrames.length; i++) {
         let img = new Image();
         img.src = animFrames[i];
-        img.style.border = "1px solid black";
+        img.style.border = "1px solid red";
         img.onload = function () {
             body.appendChild(this);
         }
@@ -60,25 +53,24 @@ function createanimation(animFrames) {
 }
 
 function spriteLoader(json) {
-    //sprite, startX, startY, width, heigth, animationStyle, frames
+    //sprite, startX, startY, width, heigth, animationStyle, frames/
     let img = new Image();
     img.src = json.sprite;
     img.onload = function () {
         let body = document.getElementById("game");
         body.appendChild(this);
+        let canvas = document.createElement('canvas');
         canvas.width = json.width;
         canvas.height = json.heigth;
         let ctx = canvas.getContext("2d");
         ctx.drawImage(img, json.startX, json.startY, json.width, json.heigth, 0, 0, json.width, json.heigth);
-        let animFrames = createFrames(ctx, json.width, json.heigth, json.styleSheetCrop, json.frames);
-        //trimFrame(animFrames, json.width, json.heigth);
-//        removeAlpha(ctx, json.width, json.heigth);
+        let animFrames = createFrames(canvas, json.width, json.heigth, json.styleSheetCrop, json.frames);
         json.success(animFrames);
     };
 }
 
-function removeAlphaFrame(ctx, width, heigth) {
-    let ImageData = ctx.getImageData(0, 0, width, heigth);
+function removeAlphaFrame(ctx) {
+    let ImageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     for (i = 0; i < ImageData.data.length; i += 4) {
         if (ImageData.data[i] == 255 &&
@@ -97,22 +89,20 @@ function changePixelColor(ImageData, pixel) {
     ImageData.data[pixel + 2] = 0;
 }
 
-function trimFrame(ctx, width, heigth) {
+function trimFrame(ctx, width, height) {
+    let ImageData = ctx.getImageData(0, 0, width, height);
     let leftMostPixel = 99999;
     let rightMostPixel = -1;
     let topMostPixel = 99999;
     let downMostPixel = -1;
-    let ImageData = ctx.getImageData(0, 0, width, heigth);
-    alert(ImageData.height);
-    alert(ImageData.width);
     for (let y = 0; y < ImageData.height; y++) {
         for (let x = 0; x < ImageData.width; x++) {
             let pos = y * ImageData.width + x;
             let r = ImageData.data[pos * 4];
             let g = ImageData.data[pos * 4 + 1];
             let b = ImageData.data[pos * 4 + 2];
-            //let a = ImageData.data[(y * 4) + (x * ImageData.heigth)];
-            if (r != 255 && g != 255 && b != 255) {
+            if (r != 255 || g != 255 || b != 255) {
+                //alert(pos);
                 if (x < leftMostPixel) {
                     leftMostPixel = x;
                 } else if (x > rightMostPixel) {
@@ -120,64 +110,71 @@ function trimFrame(ctx, width, heigth) {
                 }
 
                 if (y < topMostPixel) {
-                    topMostPixel = x;
+                    topMostPixel = y;
                 } else if (y > downMostPixel) {
-                    downMostPixel = x;
+                    downMostPixel = y;
                 }
             }
         }
     }
-    console.log(leftMostPixel);
-    console.log(rightMostPixel);
-    console.log(topMostPixel);
-    console.log(downMostPixel);
-    ctx.putImageData(ImageData, leftMostPixel, topMostPixel, 0, 0, rightMostPixel, downMostPixel);
+    let tempCanvas = document.createElement('canvas');
+    let newWidth = rightMostPixel-leftMostPixel+1;
+    let newHeight = downMostPixel-topMostPixel+1;
+    tempCanvas.width = newWidth;
+    tempCanvas.height = newHeight;
+    let ctx2 = tempCanvas.getContext("2d");
+    ctx2.drawImage(ctx.canvas, leftMostPixel, topMostPixel,newWidth,newHeight, 0,0,newWidth, newHeight);
+    return ctx2;
 }
 
-function createFrames(ctx, width, heigth, styleSheetCrop, frames) {
+function createFrames(canvas, width, heigth, styleSheetCrop, frames) {
     if (styleSheetCrop === STYLESHEET_CROP.HORIZONTAL) {
-        return createHorizontalFrames(ctx, width, heigth, frames);
+        return createHorizontalFrames(canvas, width, heigth, frames);
     } else if (styleSheetCrop === STYLESHEET_CROP.VERTICAL) {
-        return createVerticalFrames(ctx, width, heigth, frames);
+        return createVerticalFrames(canvas, width, heigth, frames);
     } else {
         throw "Estilo de animação invalido";
     }
 }
 ;
 
-function createHorizontalFrames(ctx, width, heigth, frames) {
+function createHorizontalFrames(canvas, width, height, frames) {
     let animFrames = [];
     let tempCanvas = document.createElement('canvas');
-    let tempCtx = tempCanvas.getContext("2d");
+    let ctx = tempCanvas.getContext("2d");
     let startX = 0;
     let startY = 0;
     width = width / frames;
     tempCanvas.width = width;
-    tempCanvas.height = heigth;
+    tempCanvas.height = height;
     for (let i = 0; i < frames; i++) {
-        tempCtx.drawImage(canvas, startX, startY, width, heigth, 0, 0, width, heigth);
-        animFrames.push(tempCanvas.toDataURL());
+        ctx.drawImage(canvas, startX, startY, width, height, 0, 0, width, height);
+        let trimmedCtx = trimFrame(ctx, width, height);
+        removeAlphaFrame(trimmedCtx,);
+        animFrames.push(trimmedCtx.canvas.toDataURL());
         startX += width;
-        tempCtx.clearRect(0, 0, width, heigth);
+        ctx.clearRect(0, 0, width, height);
     }
     return animFrames;
 }
 ;
 
-function createVerticalFrames(width, heigth, frames) {
+function createVerticalFrames(canvas, width, height, frames) {
     let animFrames = [];
     let tempCanvas = document.createElement('canvas');
-    let tempCtx = tempCanvas.getContext("2d");
+    let ctx = tempCanvas.getContext("2d");
     let startX = 0;
     let startY = 0;
     height = height / frames;
     tempCanvas.width = width;
-    tempCanvas.height = heigth;
+    tempCanvas.height = height;
     for (let i = 0; i < frames; i++) {
-        tempCtx.drawImage(canvas, startX, startY, width, heigth, 0, 0, width, heigth);
-        animFrames.push(tempCanvas.toDataURL());
-        startY += heigth;
-        tempCtx.clearRect(0, 0, width, heigth);
+        ctx.drawImage(canvas, startX, startY, width, height, 0, 0, width, height);
+        let trimmedCtx = trimFrame(ctx, width, height);
+        removeAlphaFrame(trimmedCtx,);
+        animFrames.push(trimmedCtx.canvas.toDataURL());
+        startY += height;
+        ctx.clearRect(0, 0, width, height);
     }
     return animFrames;
 }
