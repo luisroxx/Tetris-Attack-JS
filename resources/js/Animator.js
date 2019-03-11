@@ -9,19 +9,11 @@ const ANIMATION_STATUS = {
     STOPPED: "STOPPED"
 };
 
-function createAnimation(animFrames) {
-    let body = document.getElementById("game");
-    for (let i = 0; i < animFrames.length; i++) {
-        let img = new Image();
-        img.src = animFrames[i];
-        img.style.border = "1px solid red";
-        img.onload = function () {
-            body.appendChild(this);
-        }
-    }
+function testCreateAnimation(animFrames) {
+    loadFrames(animFrames);
 
     let anim = new Image();
-    body.appendChild(anim);
+    Game.appendChild(anim);
     let animatedObject = {
         el: anim,
         status: ANIMATION_STATUS.RUNNING,
@@ -37,21 +29,15 @@ function createAnimation(animFrames) {
         //setTimeout(function() { animate(animatedObject); }, 1000);
         setTimeout(animate, animatedObject.frameTime[animatedObject.currFrame], animatedObject);
     }
-};
+}
+;
 
-function createAnimation2(animFrames) {
-    let body = document.getElementById("game");
-    for (let i = 0; i < animFrames.length; i++) {
-        let img = new Image();
-        img.src = animFrames[i];
-        img.style.border = "1px solid red";
-        img.onload = function () {
-            body.appendChild(this);
-        }
-    }
+function testCreateAnimation2(animFrames) {
+    +
+            loadFrames(animFrames);
 
     let anim = new Image();
-    body.appendChild(anim);
+    Game.appendChild(anim);
     let animatedObject = {
         el: anim,
         status: ANIMATION_STATUS.RUNNING,
@@ -67,18 +53,67 @@ function createAnimation2(animFrames) {
         //setTimeout(function() { animate(animatedObject); }, 1000);
         setTimeout(animate, animatedObject.frameTime[animatedObject.currFrame], animatedObject);
     }
-};
+}
+;
 
-
-function animate(obj) {
-    if (obj.currFrame === obj.frameOrder.length - 1)
-        obj.currFrame = 0;
-    else
-        obj.currFrame++;
-    obj.el.src = obj.frames[obj.frameOrder[obj.currFrame]];
-    obj.el.onload = function () {
-        obj.el.onload = null;
-        //setTimeout(function() { animate(obj); }, 1000);
-        setTimeout(animate, obj.frameTime[obj.currFrame], obj);
+function loadFrames(frames) {
+    for (let i = 0; i < frames.length; i++) {
+        let img = new Image();
+        img.src = frames[i];
+        img.onload = function () {
+            Game.appendChild(this);
+        }
     }
 }
+
+
+
+
+
+
+
+
+function createAnimation(animation) {
+    let anim = new Image();
+    animation.el = anim;
+    anim.onload = function () {
+        anim.onload = null;
+        animation.is_loaded = true;
+        Game.appendChild(Yoshi_Title.animations[0].el);
+        startAnimation(Yoshi_Title.animations[0]);
+    }
+    resetAnimation(animation);
+
+};
+
+function resetAnimation(animation) {
+    animation.status = ANIMATION_STATUS.STOPPED;
+    animation.currFrame = 0;
+    animation.el.src = animation.frames[animation.currFrame];
+}
+
+function startAnimation(animation) {
+    animation.status = ANIMATION_STATUS.RUNNING;
+    setTimeout(animate, animation.frameTime[animation.currFrame], animation);
+}
+
+function stopAnimation(animation) {
+    animation.status = ANIMATION_STATUS.STOPPED;
+}
+
+function animate(animation) {
+    if (animation.status == ANIMATION_STATUS.STOPPED) {
+        return;
+    }
+    ;
+    if (animation.currFrame === animation.frameOrder.length - 1)
+        animation.currFrame = 0;
+    else
+        animation.currFrame++;
+    animation.el.src = animation.frames[animation.frameOrder[animation.currFrame]];
+    animation.el.onload = function () {
+        animation.el.onload = null;
+        setTimeout(animate, animation.frameTime[animation.currFrame], animation);
+    };
+}
+;

@@ -21,7 +21,7 @@ const TRANSPARENT_COLOR = {
     }
 }
 
-function spriteLoader(json) {
+function loadSprite(json) {
     //spritesheet, startX, startY, width, heigth, scale, animationStyle, frames/
     let img = new Image();
     img.src = json.spritesheet;
@@ -38,54 +38,70 @@ function spriteLoader(json) {
     };
 }
 
+function loadAnimation(animation) {
+    //spritesheet, startX, startY, width, heigth, scale, animationStyle, frames/
+    let json = animation.local;
+    let img = new Image();
+    img.src = json.spritesheet;
+    img.onload = function () {
+        let canvas = document.createElement('canvas');
+        canvas.width = json.width;
+        canvas.height = json.heigth;
+        let ctx = canvas.getContext("2d");
+        ctx.drawImage(img, json.startX, json.startY, json.width, json.heigth, 0, 0, json.width, json.heigth);
+        animation.frames = createFrames(canvas, json.width, json.heigth, json.scale, json.transparentColor, json.styleSheetCrop, json.frames);
+        json.success(animation);
+    };
+}
+
 function createFrames(canvas, width, heigth, scale, transparentColor, styleSheetCrop, frames) {
     if (styleSheetCrop === STYLESHEET_CROP.HORIZONTAL) {
-        return createHorizontalFrames(canvas, width, heigth, scale, transparentColor, frames);
+        return cropHorizontalFrames(canvas, width, heigth, scale, transparentColor, frames);
     } else if (styleSheetCrop === STYLESHEET_CROP.VERTICAL) {
-        return createVerticalFrames(canvas, width, heigth, scale, transparentColor, frames);
+        return cropVerticalFrames(canvas, width, heigth, scale, transparentColor, frames);
     } else {
         throw "Estilo de animação invalido";
     }
 };
 
-function createHorizontalFrames(canvas, width, height, scale, transparentColor, frames) {
+function cropHorizontalFrames(canvas, width, height, scale, transparentColor, frames) {
     let animFrames = [];
-    let tempCanvas = document.createElement('canvas');
-    let ctx = tempCanvas.getContext("2d");
     let startX = 0;
     let startY = 0;
     width = width / frames;
-    tempCanvas.width = width;
-    tempCanvas.height = height;
     for (let i = 0; i < frames; i++) {
+        let tempCanvas = document.createElement('canvas');
+        let ctx = tempCanvas.getContext("2d");
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+        ctx.imageSmoothingEnabled = false;
         ctx.drawImage(canvas, startX, startY, width, height, 0, 0, width, height);
         let trimmedCtx = trimFrame(ctx, transparentColor ,width, height);
         removeFrameAlphaChannel(trimmedCtx, transparentColor);
         let scalledCtx = scaleFrame(trimmedCtx, scale);
-        animFrames.push(scalledCtx.canvas.toDataURL());
+        animFrames.push(scalledCtx.canvas.toDataURL("image/png",1));
         startX += width;
-        ctx.clearRect(0, 0, width, height);
     }
     return animFrames;
 };
 
-function createVerticalFrames(canvas, width, height, transparentColor, frames) {
+function cropVerticalFrames(canvas, width, height, transparentColor, frames) {
     let animFrames = [];
-    let tempCanvas = document.createElement('canvas');
-    let ctx = tempCanvas.getContext("2d");
     let startX = 0;
     let startY = 0;
     height = height / frames;
-    tempCanvas.width = width;
-    tempCanvas.height = height;
     for (let i = 0; i < frames; i++) {
+        let tempCanvas = document.createElement('canvas');
+        let ctx = tempCanvas.getContext("2d");
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+        ctx.imageSmoothingEnabled = false;
         ctx.drawImage(canvas, startX, startY, width, height, 0, 0, width, height);
-        let trimmedCtx = trimFrame(ctx, width, height);
-        removeFrameAlphaChannel(trimmedCtx);
+        let trimmedCtx = trimFrame(ctx, transparentColor ,width, height);
+        removeFrameAlphaChannel(trimmedCtx, transparentColor);
         let scalledCtx = scaleFrame(trimmedCtx, scale);
-        animFrames.push(scalledCtx.canvas.toDataURL());
+        animFrames.push(scalledCtx.canvas.toDataURL("image/png",1));
         startY += height;
-        ctx.clearRect(0, 0, width, height);
     }
     return animFrames;
 };
@@ -103,7 +119,6 @@ function trimFrame(ctx, transparentColor, width, height) {
             let g = ImageData.data[pos * 4 + 1];
             let b = ImageData.data[pos * 4 + 2];
             if (r != transparentColor.r || g != transparentColor.g || b != transparentColor.b) {
-                //alert(pos);
                 if (x < leftMostPixel) {
                     leftMostPixel = x;
                 } else if (x > rightMostPixel) {
@@ -151,18 +166,19 @@ function scaleFrame(ctx, scale){
   ctx.canvas.width*=scale;
   ctx.canvas.height*=scale;
   ctx = ctx.canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
   ctx.drawImage(tempCanvas,0,0,tempCanvas.width,tempCanvas.height,0,0,ctx.canvas.width,ctx.canvas.height);
   return ctx;
 }
 
 function changePixelColor(ImageData, pixel) {
-    ImageData.data[pixel] = 0;
+    ImageData.data[pixel] = 255;
     ImageData.data[pixel + 1] = 0;
     ImageData.data[pixel + 2] = 0;
 }
 
 function testLoad() {
-    spriteLoader({
+    loadSprite({
         spritesheet: 'resources/images/characters/SNES - Tetris Attack - Yoshi.png',
         startX: 0,
         startY: 25,
@@ -172,17 +188,17 @@ function testLoad() {
         transparentColor: TRANSPARENT_COLOR.WHITE,
         styleSheetCrop: STYLESHEET_CROP.HORIZONTAL,
         frames: 3,
-        success: createAnimation});
+        success: testCreateAnimation});
     
-    spriteLoader({
+    loadSprite({
         spritesheet: 'resources/images/characters/SNES - Tetris Attack - VS Mode Characters.png',
         startX: 141,
         startY: 5,
-        width: 60,
+        width: 62,
         heigth: 41,
-        scale: 1,
+        scale: 2,
         transparentColor: TRANSPARENT_COLOR.BLUE,
         styleSheetCrop: STYLESHEET_CROP.HORIZONTAL,
         frames: 3,
-        success: createAnimation2});
+        success: testCreateAnimation2});
 };
