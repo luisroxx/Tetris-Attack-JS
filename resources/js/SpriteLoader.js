@@ -21,26 +21,8 @@ const TRANSPARENT_COLOR = {
     }
 }
 
-function loadSprite(json) {
+function loadSprite(json, callback) {
     //spritesheet, startX, startY, width, heigth, scale, animationStyle, frames/
-    let img = new Image();
-    img.src = json.spritesheet;
-    img.onload = function () {
-        let body = document.getElementById("game");
-        body.appendChild(this);
-        let canvas = document.createElement('canvas');
-        canvas.width = json.width;
-        canvas.height = json.heigth;
-        let ctx = canvas.getContext("2d");
-        ctx.drawImage(img, json.startX, json.startY, json.width, json.heigth, 0, 0, json.width, json.heigth);
-        let animFrames = createFrames(canvas, json.width, json.heigth, json.scale, json.transparentColor, json.styleSheetCrop, json.frames);
-        json.success(animFrames);
-    };
-}
-
-function loadAnimation(animation) {
-    //spritesheet, startX, startY, width, heigth, scale, animationStyle, frames/
-    let json = animation.local;
     let img = new Image();
     img.src = json.spritesheet;
     img.onload = function () {
@@ -49,8 +31,8 @@ function loadAnimation(animation) {
         canvas.height = json.heigth;
         let ctx = canvas.getContext("2d");
         ctx.drawImage(img, json.startX, json.startY, json.width, json.heigth, 0, 0, json.width, json.heigth);
-        animation.frames = createFrames(canvas, json.width, json.heigth, json.scale, json.transparentColor, json.styleSheetCrop, json.frames);
-        json.success(animation);
+        let animFrames = createFrames(canvas, json.width, json.heigth, json.scale, json.transparentColor, json.styleSheetCrop, json.frames);
+        callback(animFrames);
     };
 }
 
@@ -187,8 +169,7 @@ function testLoad() {
         scale: 1,
         transparentColor: TRANSPARENT_COLOR.WHITE,
         styleSheetCrop: STYLESHEET_CROP.HORIZONTAL,
-        frames: 3,
-        success: testCreateAnimation});
+        frames: 3}, testCreateAnimation);
     
     loadSprite({
         spritesheet: 'resources/images/characters/SNES - Tetris Attack - VS Mode Characters.png',
@@ -199,6 +180,5 @@ function testLoad() {
         scale: 2,
         transparentColor: TRANSPARENT_COLOR.BLUE,
         styleSheetCrop: STYLESHEET_CROP.HORIZONTAL,
-        frames: 3,
-        success: testCreateAnimation2});
+        frames: 3} ,testCreateAnimation2);
 };

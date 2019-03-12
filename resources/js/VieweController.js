@@ -6,7 +6,10 @@
 
 const VIEWES = {
     TITLESCREEN: {
-        FUNCTION: startTitle,
+        FUNCTION: startTitle
+    },
+    SINGLEPLAYER: {
+        FUNCTION: startSinglePlayer
     }
 }
 
@@ -14,6 +17,9 @@ function startViewe(viewe) {
     switch (viewe) {
         case VIEWES.TITLESCREEN:
             VIEWES.TITLESCREEN.FUNCTION();
+            break;
+        case VIEWES.SINGLEPLAYER:
+            VIEWES.SINGLEPLAYER.FUNCTION();
             break;
         default:
             throw "Viewe not found"

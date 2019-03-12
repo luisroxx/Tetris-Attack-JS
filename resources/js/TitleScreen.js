@@ -15,13 +15,14 @@ let Yoshi_Title = {
                 scale: 5,
                 transparentColor: TRANSPARENT_COLOR.BLUE,
                 styleSheetCrop: STYLESHEET_CROP.HORIZONTAL,
-                frames: 3,
-                success: createAnimation,
+                frames: 3
             },
             el: null,
             is_loaded: false,
             status: ANIMATION_STATUS.STOPPED,
             currFrame: 0,
+            currAnimation: null,
+            loop: true,
             frames: null,
             frameOrder: [0, 2, 1, 2],
             frameTime: [200, 200, 200, 200]
@@ -29,12 +30,13 @@ let Yoshi_Title = {
     ]
 };
 
-let NintendoLogo = {
-
-};
-
 function startTitle() {
-    loadAnimation(Yoshi_Title.animations[0]);
-    //Game.appendChild(Yoshi_Title.animations[0].el);
-    //startAnimation(Yoshi_Title.animations[0]);
+    preCacheAnimations(Yoshi_Title.animations, createScreen);
 };
+
+function createScreenTitle() {
+    for (let i = 0; i < anims.length; i++) {
+        Game.appendChild(anims[i].el);
+        startAnimation(anims[i]);
+    }
+}

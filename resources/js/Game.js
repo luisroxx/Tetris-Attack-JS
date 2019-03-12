@@ -7,5 +7,5 @@
 let Game = document.getElementById("game");
 
 window.onload = function(){
-    startViewe(VIEWES.TITLESCREEN);
+    startViewe(VIEWES.SINGLEPLAYER);
 }

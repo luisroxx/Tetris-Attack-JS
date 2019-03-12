@@ -20,7 +20,8 @@ function testCreateAnimation(animFrames) {
         currFrame: 0,
         frames: animFrames,
         frameOrder: [0, 2, 1, 2],
-        frameTime: [1500, 100, 100, 100]
+        frameTime: [1500, 100, 100, 100],
+        loop: true
     };
     animatedObject.currFrame = 0;
     anim.src = animatedObject.frames[animatedObject.currFrame];
@@ -44,7 +45,8 @@ function testCreateAnimation2(animFrames) {
         currFrame: 0,
         frames: animFrames,
         frameOrder: [0, 2, 1, 2],
-        frameTime: [200, 200, 200, 200]
+        frameTime: [200, 200, 200, 200],
+        loop: true
     };
     animatedObject.currFrame = 0;
     anim.src = animatedObject.frames[animatedObject.currFrame];
@@ -73,17 +75,15 @@ function loadFrames(frames) {
 
 
 
-function createAnimation(animation) {
+function createAnimation(animation, callback) {
     let anim = new Image();
     animation.el = anim;
     anim.onload = function () {
         anim.onload = null;
         animation.is_loaded = true;
-        Game.appendChild(Yoshi_Title.animations[0].el);
-        startAnimation(Yoshi_Title.animations[0]);
+        callback();
     }
     resetAnimation(animation);
-
 };
 
 function resetAnimation(animation) {
@@ -94,26 +94,36 @@ function resetAnimation(animation) {
 
 function startAnimation(animation) {
     animation.status = ANIMATION_STATUS.RUNNING;
-    setTimeout(animate, animation.frameTime[animation.currFrame], animation);
+    animation.currAnimation = setTimeout(animate, animation.frameTime[animation.currFrame], animation);
 }
 
 function stopAnimation(animation) {
     animation.status = ANIMATION_STATUS.STOPPED;
 }
 
+function forceStopAnimation(animation) {
+    clearTimeout(animation.currAnimation);
+    animation.status = ANIMATION_STATUS.STOPPED;
+}
+
 function animate(animation) {
-    if (animation.status == ANIMATION_STATUS.STOPPED) {
+    if (animation.status === ANIMATION_STATUS.STOPPED) {
         return;
     }
     ;
     if (animation.currFrame === animation.frameOrder.length - 1)
-        animation.currFrame = 0;
-    else
+    {
+        if (!animation.loop) {
+            return;
+        } else {
+            animation.currFrame = 0;
+        }
+    } else{
         animation.currFrame++;
+    }
     animation.el.src = animation.frames[animation.frameOrder[animation.currFrame]];
     animation.el.onload = function () {
         animation.el.onload = null;
-        setTimeout(animate, animation.frameTime[animation.currFrame], animation);
+        animation.currAnimation = setTimeout(animate, animation.frameTime[animation.currFrame], animation);
     };
-}
-;
+};
