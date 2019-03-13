@@ -8,18 +8,29 @@ const VIEWES = {
     TITLESCREEN: {
         FUNCTION: startTitle
     },
-    SINGLEPLAYER: {
-        FUNCTION: startSinglePlayer
+    ENDLESSMODE: {
+        FUNCTION: startEndlessMode
     }
 }
+
+let currentViewe;
+let vieweEndlessMode;
 
 function startViewe(viewe) {
     switch (viewe) {
         case VIEWES.TITLESCREEN:
             VIEWES.TITLESCREEN.FUNCTION();
             break;
-        case VIEWES.SINGLEPLAYER:
-            VIEWES.SINGLEPLAYER.FUNCTION();
+        case VIEWES.ENDLESSMODE:
+            if (currentViewe!=null){
+                Game.removeChild(currentViewe);
+            }
+            vieweEndlessMode = document.createElement("div");
+            currentViewe = vieweEndlessMode;
+            vieweEndlessMode.style.width = "100%";
+            vieweEndlessMode.style.height = "100%";
+            Game.appendChild(vieweEndlessMode);
+            VIEWES.ENDLESSMODE.FUNCTION();
             break;
         default:
             throw "Viewe not found"

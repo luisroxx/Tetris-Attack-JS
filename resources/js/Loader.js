@@ -6,7 +6,6 @@
 
 function preCacheAnimations(animArray, callback)
 {
-    console.log(animArray.length);
     let total = animArray.length;
     let done = 0;
     for(let i=0; i<animArray.length;i++){

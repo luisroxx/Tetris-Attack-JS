@@ -34,9 +34,7 @@ function testCreateAnimation(animFrames) {
 ;
 
 function testCreateAnimation2(animFrames) {
-    +
-            loadFrames(animFrames);
-
+    loadFrames(animFrames);
     let anim = new Image();
     Game.appendChild(anim);
     let animatedObject = {
@@ -67,13 +65,6 @@ function loadFrames(frames) {
         }
     }
 }
-
-
-
-
-
-
-
 
 function createAnimation(animation, callback) {
     let anim = new Image();
